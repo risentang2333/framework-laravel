@@ -13,6 +13,4 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('/', function (Request $request) {
-    return "this is api route";
-});
+Route::get('/index', 'ApiController@index');
