@@ -11,4 +11,7 @@
 |
 */
 
-Route::get('/', 'AdminController@index');
+
+Route::group(['middleware' => ['web']], function () {
+    Route::get('/', 'AdminController@index');
+});
