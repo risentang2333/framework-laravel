@@ -11,7 +11,6 @@
 |
 */
 
-
-Route::group(['middleware' => ['web']], function () {
-    Route::get('/', 'AdminController@index');
+Route::group(['prefix' => 'permission'], function () {
+    Route::get('/getMenu', 'PermissionController@getMenu');
 });

@@ -13,4 +13,4 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('/index', 'ApiController@index');
+Route::get('/index', 'ExampleController@index');
