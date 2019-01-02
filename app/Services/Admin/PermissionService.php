@@ -1,23 +1,21 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Admin;
 
-use App\Entities\Users;
-use App\Entities\RoleUser;
+use App\Entities\Managers;
+use App\Entities\RoleManager;
 use App\Entities\Roles;
 use App\Entities\PermissionRole;
 use App\Entities\Permissions;
 use Illuminate\Support\Facades\DB;
 
-
-
 class PermissionService 
 {
-    private $roleUserData = [
-        'role_user.id',
-        'role_user.user_id',
-        'role_user.role_id',
-        'users.name as user_name',
+    private $roleManagerData = [
+        'role_manager.id',
+        'role_manager.manager_id',
+        'role_manager.role_id',
+        'managers.name as manager_name',
         'roles.name as role_name',
     ];
 
@@ -32,13 +30,13 @@ class PermissionService
         'is_display',
     ];
 
-    public function getRoleUser()
+    public function getRoleManager()
     {
-        $data = RoleUser::leftjoin('users', function ($join) {
-            $join->on('user_id','users.id');
+        $data = RoleManager::leftjoin('managers', function ($join) {
+            $join->on('manager_id','managers.id');
         })->rightjoin('roles', function ($join) {
             $join->on('role_id','roles.id');
-        })->select($this->roleUserData)->get()->toArray();
+        })->select($this->roleManagerData)->get()->toArray();
     
         return $data;
     }
@@ -55,9 +53,9 @@ class PermissionService
     }
 
     // 根据用户id查询用户绑定的角色id
-    public function getRoleIdsByUserId($id)
+    public function getRoleIdsByManagerId($id)
     {
-        $data = RoleUser::where('user_id',$id)->pluck('role_id')->toArray();
+        $data = RoleManager::where('manager_id',$id)->pluck('role_id')->toArray();
         
         return $data;
     }
@@ -69,6 +67,21 @@ class PermissionService
         $data = Permissions::select(['id','name','parent_id'])
                         ->whereIn('id',$permissionIds)
                         ->where('is_display',1)
+                        ->orderBy('sort_order','ASC')
+                        ->get()
+                        ->keyBy('id')
+                        ->toArray();
+        return $data;
+    }
+
+    /**
+     * 获取所有权限
+     *
+     * @return void
+     */
+    public function getPermission()
+    {
+        $data = Permissions::select(['id','name','parent_id'])
                         ->orderBy('sort_order','ASC')
                         ->get()
                         ->keyBy('id')
@@ -95,19 +108,37 @@ class PermissionService
         return $tree;
     }
 
-    public function makeTree($items)
+    /**
+     * 遍历树结构每个节点，生成“父节点-子节点”结构
+     *
+     * @param array $items
+     * @param integer $ids
+     * @param string $names
+     * @return array
+     */
+    public function visitTree($items, $ids = 0, $names = '')
     {
-        $selection = array();
-
+        // static $selection = array();
+        static $selection = array(["id"=>0, "ids"=>"0", "names"=>"基础"]);
+        $temp = array();
         foreach ($items as $key => $value) {
-
-            if (isset($items[$value['parent_id']])) {
-                $items[$key]['name'] = $items[$value['parent_id']]['name'].'>'.$items[$key]['name'];
-                $items[$key]['ids'] = $items[$value['parent_id']]['id'].'-'.$items[$key]['id'];
+            if ($ids == 0) {
+                $temp['id'] = $value['id'];
+                $temp['ids'] = (string)$value['id'];
+                $temp['names'] = $value['name'];
             } else {
-                $items[$key]['ids'] = $value['id'];
+                $temp['id'] = $value['id'];
+                $temp['ids'] = $ids.'-'.$value['id'];
+                $temp['names'] = $names.'>'.$value['name'];
             }
-            array_push($selection, $items[$key]);
+            array_push($selection, $temp);
+            if (isset($value['son'])) {
+                if ($ids == 0) {
+                    $this->visitTree($items[$key]['son'], $value['id'], $value['name']);
+                } else {
+                    $this->visitTree($items[$key]['son'], $ids.'-'.$value['id'], $names.'>'.$value['name']);
+                }
+            }
         }
         
         return $selection;
@@ -120,16 +151,16 @@ class PermissionService
         return $data;
     }
 
-    public function getUserList()
+    public function getManagerList()
     {
-        $data = Users::get()->toArray();
+        $data = Managers::get()->toArray();
 
         return $data;
     }
 
-    public function getPermissionList()
+    public function getPermissionList($pageNumber = 20)
     {
-        $data = Permissions::get()->toArray();
+        $data = Permissions::paginate($pageNumber)->toArray();
 
         return $data;
     }

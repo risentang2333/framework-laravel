@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use App\Services\PermissionService;
+use App\Services\Admin\PermissionService;
 
 class PermissionController extends Controller
 {
@@ -14,40 +14,30 @@ class PermissionController extends Controller
 
         $id = 1;
         // 根据用户id查询角色id组
-        $roleIds = $permissionService->getRoleIdsByUserId($id);
+        $roleIds = $permissionService->getRoleIdsByManagerId($id);
 
         $data = $permissionService->getPermissionByRoleIds($roleIds);
         // 生成树结构
-        $tree = $permissionService->makeTree($data);
+
+        $tree = $permissionService->getTree($data);
 
         return $tree;
     }
 
     public function getRoleList()
     {
-        // $permissionService = new PermissionService;
-
-        // $list = $permissionService->getRoleList();
-
-        // return $list;
         $permissionService = new PermissionService;
 
-        $id = 1;
-        // 根据用户id查询角色id组
-        $roleIds = $permissionService->getRoleIdsByUserId($id);
+        $list = $permissionService->getRoleList();
 
-        $data = $permissionService->getPermissionByRoleIds($roleIds);
-
-        $tree = $permissionService->getTree($data);
-        
-        return $tree;
+        return $list;
     }
 
-    public function getUserList()
+    public function getManagerList()
     {
         $permissionService = new PermissionService;
 
-        $list = $permissionService->getUserList();
+        $list = $permissionService->getManagerList();
 
         return $list;
     }
@@ -69,11 +59,20 @@ class PermissionController extends Controller
 
     public function editPermission(Request $request)
     {
-        $permissionService = new PermissionService;
-        
         $id = 1;
 
-        $data = $permissionService->getPermissionById($id);
-        dd($data);
+        $permissionService = new PermissionService;
+        
+        if ($id != 0) {
+            $permission = $permissionService->getPermissionById($id);
+        }
+
+        $permissions = $permissionService->getPermissions();
+
+        $tree = $permissionService->getTree($data);
+
+        $selection = $permissionService->visitTree($tree);
+        
+        return $selection;
     }
 }

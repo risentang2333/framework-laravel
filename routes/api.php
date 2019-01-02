@@ -14,3 +14,6 @@ use Illuminate\Http\Request;
 */
 
 Route::get('/index', 'ExampleController@index');
+Route::group(['prefix' => 'user'], function () {
+    Route::post('/register', 'UserController@register');
+});

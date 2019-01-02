@@ -15,7 +15,7 @@ class Permission
      */
     public function handle($request, Closure $next)
     {
-        echo 'permission';exit;
+        // echo 'permission';exit;
         return $next($request);
     }
 }
