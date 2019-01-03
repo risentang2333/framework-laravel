@@ -12,4 +12,11 @@ class Managers extends Model
      * @var string
      */
     protected $table = 'managers';
+
+    /**
+     * 该模型是否被自动维护时间戳
+     *
+     * @var bool
+     */
+    public $timestamps = false;
 }
